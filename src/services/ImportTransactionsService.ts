@@ -9,26 +9,53 @@ interface Request {
   filePath: string;
 }
 
+interface CSVParser {
+  title: string;
+  type: 'income' | 'outcome';
+  value: number;
+  category: string;
+}
+
 class ImportTransactionsService {
   async execute({ filePath }: Request): Promise<Transaction[]> {
-    const createTransactionService = new CreateTransactionService();
-
-    const transactions = [] as Transaction[];
-    await fs.createReadStream(filePath).pipe(
-      csv({ columns: true, from_line: 1, trim: true })
-        .on('data', async row => {
-          const transaction = await createTransactionService.execute(row);
-          transactions.push(transaction);
-        })
-        .on('end', () => {
-          fs.unlinkSync(filePath);
-        })
-        .on('error', err => {
-          throw new AppError(err.message);
-        }),
-    );
+    const parsedTransactions = await this.getParsedCSV(filePath);
+    const transactions = this.saveTransactioInDataBase(parsedTransactions);
 
     return transactions;
+  }
+
+  private async saveTransactioInDataBase(
+    csvParsed: CSVParser[],
+  ): Promise<Transaction[]> {
+    const transactions = [] as Transaction[];
+    const createTransactionService = new CreateTransactionService();
+    for (const data of csvParsed) {
+      const transaction = await createTransactionService.execute(data);
+      transactions.push(transaction);
+    }
+    return transactions;
+  }
+
+  private getParsedCSV(filePath: string): Promise<CSVParser[]> {
+    return new Promise<CSVParser[]>((resolve, reject) => {
+      const parsers = [] as CSVParser[];
+      const stream = fs
+        .createReadStream(filePath)
+        .pipe(csv({ columns: true, from_line: 1, trim: true }))
+        .on('data', data => {
+          try {
+            stream.pause();
+            parsers.push(data);
+          } finally {
+            stream.resume();
+          }
+        })
+        .on('end', () => {
+          fs.promises.unlink(filePath);
+          resolve(parsers);
+        })
+        .on('error', err => new AppError(err.message));
+    });
   }
 }
 
