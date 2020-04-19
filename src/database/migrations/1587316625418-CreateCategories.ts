@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export default class CreateCategories1587088796264
+export default class CreateCategories1587316625418
   implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
@@ -20,12 +20,12 @@ export default class CreateCategories1587088796264
           },
           {
             name: 'created_at',
-            type: 'timestamp with time zone',
+            type: 'timestamp',
             default: 'now()',
           },
           {
             name: 'updated_at',
-            type: 'timestamp with time zone',
+            type: 'timestamp',
             default: 'now()',
           },
         ],

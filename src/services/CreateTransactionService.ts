@@ -29,24 +29,21 @@ class CreateTransactionService {
       throw new AppError('Outcome not avaliable!', 400);
     }
 
-    const checkCategoryExists = await categoriesRepository.findOne({
+    let transactionCategory = await categoriesRepository.findOne({
       where: { title: category },
     });
 
-    let categoryChecked;
-    if (checkCategoryExists) {
-      categoryChecked = checkCategoryExists;
-    } else {
-      categoryChecked = await categoriesRepository.create({ title: category });
-      await categoriesRepository.save(categoryChecked);
+    if (!transactionCategory) {
+      transactionCategory = categoriesRepository.create({ title: category });
+      await categoriesRepository.save(transactionCategory);
     }
 
-    const transaction = await transactionsRepository.create({
+    const transaction = transactionsRepository.create({
       title,
       value,
       type,
-      category_id: categoryChecked.id,
-      category: categoryChecked,
+      category_id: transactionCategory.id,
+      category: transactionCategory,
     });
 
     await transactionsRepository.save(transaction);

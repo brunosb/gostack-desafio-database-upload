@@ -18,11 +18,11 @@ class TransactionsRepository extends Repository<Transaction> {
         const { type, value } = transaction;
 
         if (type === 'income') {
-          acc.income += value;
-          acc.total += value;
+          acc.income += Number(value);
+          acc.total += Number(value);
         } else if (type === 'outcome') {
-          acc.outcome += value;
-          acc.total -= value;
+          acc.outcome += Number(value);
+          acc.total -= Number(value);
         }
 
         return acc;

@@ -6,13 +6,12 @@ import AppError from '../errors/AppError';
 interface Request {
   id: string;
 }
+
 class DeleteTransactionService {
   public async execute({ id }: Request): Promise<void> {
     const transactionsRepository = getCustomRepository(TransactionsRepository);
 
-    const checkTransactionExist = await transactionsRepository.findOne({
-      where: { id },
-    });
+    const checkTransactionExist = await transactionsRepository.findOne(id);
 
     if (!checkTransactionExist) {
       throw new AppError('Transaction not found.', 404);
